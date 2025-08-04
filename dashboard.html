@@ -382,38 +382,70 @@
         let currentView = 'dashboard';
 
         // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard loading...');
+        function initializeDashboard() {
+            console.log('Dashboard initializing...');
             
-            // Initialize Lucide icons
-            lucide.createIcons();
-            
-            // Check authentication first
-            if (!checkAuthentication()) {
-                return; // Stop if authentication fails
+            try {
+                // Initialize Lucide icons
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                    console.log('Lucide icons initialized');
+                }
+                
+                // Check authentication first
+                if (!checkAuthentication()) {
+                    console.log('Authentication failed, stopping initialization');
+                    return;
+                }
+                
+                console.log('Authentication successful, setting up dashboard...');
+                
+                // Set up event listeners
+                setupEventListeners();
+                
+                // Update date/time
+                updateDateTime();
+                setInterval(updateDateTime, 1000);
+                
+                // Set default dates
+                const today = new Date().toISOString().split('T')[0];
+                const admissionDateField = document.getElementById('studentAdmissionDate');
+                const joinDateField = document.getElementById('teacherJoinDate');
+                if (admissionDateField) admissionDateField.value = today;
+                if (joinDateField) joinDateField.value = today;
+                
+                // Load initial data
+                setTimeout(loadDashboardData, 500);
+                
+                console.log('Dashboard setup complete');
+                
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+                document.body.innerHTML = `
+                    <div style="padding: 20px; text-align: center; font-family: Arial;">
+                        <h2>Dashboard Loading Error</h2>
+                        <p>Error: ${error.message}</p>
+                        <button onclick="window.location.reload()">Reload Page</button>
+                        <br><br>
+                        <a href="?page=login">Back to Login</a>
+                    </div>
+                `;
             }
-            
-            console.log('Authentication successful, setting up dashboard...');
-            
-            // Set up event listeners
-            setupEventListeners();
-            
-            // Update date/time
-            updateDateTime();
-            setInterval(updateDateTime, 1000);
-            
-            // Load initial data
-            loadDashboardData();
-            
-            // Set default dates
-            const today = new Date().toISOString().split('T')[0];
-            const admissionDateField = document.getElementById('studentAdmissionDate');
-            const joinDateField = document.getElementById('teacherJoinDate');
-            if (admissionDateField) admissionDateField.value = today;
-            if (joinDateField) joinDateField.value = today;
-            
-            console.log('Dashboard setup complete');
+        }
+
+        // Wait for DOM and external scripts to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Small delay to ensure all scripts are loaded
+            setTimeout(initializeDashboard, 100);
         });
+
+        // Fallback initialization if DOMContentLoaded already fired
+        if (document.readyState === 'loading') {
+            // DOM is still loading
+        } else {
+            // DOM is already loaded
+            setTimeout(initializeDashboard, 100);
+        }
 
         function checkAuthentication() {
             const userInfo = sessionStorage.getItem('userInfo');
@@ -525,15 +557,40 @@
         }
 
         function loadDashboardData() {
+            console.log('Loading dashboard data...');
+            
+            // Check if google.script.run is available
+            if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                console.error('Google Apps Script API not available');
+                showAlert('Google Apps Script connection failed. Please check your setup.', 'error');
+                
+                // Set default values
+                document.getElementById('totalStudents').textContent = '0';
+                document.getElementById('totalTeachers').textContent = '0';
+                document.getElementById('totalSubjects').textContent = '0';
+                return;
+            }
+            
             google.script.run
                 .withSuccessHandler(function(data) {
-                    document.getElementById('totalStudents').textContent = data.totalStudents;
-                    document.getElementById('totalTeachers').textContent = data.totalTeachers;
-                    document.getElementById('totalSubjects').textContent = data.totalSubjects;
+                    console.log('Dashboard data received:', data);
+                    if (data && typeof data === 'object') {
+                        document.getElementById('totalStudents').textContent = data.totalStudents || '0';
+                        document.getElementById('totalTeachers').textContent = data.totalTeachers || '0';
+                        document.getElementById('totalSubjects').textContent = data.totalSubjects || '0';
+                    } else {
+                        console.error('Invalid data received:', data);
+                        showAlert('Invalid data received from server', 'error');
+                    }
                 })
                 .withFailureHandler(function(error) {
                     console.error('Dashboard data error:', error);
-                    showAlert('Failed to load dashboard data', 'error');
+                    showAlert('Failed to load dashboard data: ' + error.message, 'error');
+                    
+                    // Set error values
+                    document.getElementById('totalStudents').textContent = 'Error';
+                    document.getElementById('totalTeachers').textContent = 'Error';
+                    document.getElementById('totalSubjects').textContent = 'Error';
                 })
                 .getDashboardSummary();
         }

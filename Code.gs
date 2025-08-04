@@ -338,15 +338,25 @@ function deleteTeacher(teacherId) {
  */
 
 function getSheet(sheetName) {
-  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = spreadsheet.getSheetByName(sheetName);
-  
-  if (!sheet) {
-    sheet = spreadsheet.insertSheet(sheetName);
-    setupSheetHeaders(sheet, sheetName);
+  try {
+    if (SPREADSHEET_ID === 'YOUR_SPREADSHEET_ID') {
+      throw new Error('Please replace YOUR_SPREADSHEET_ID with your actual Google Sheets ID in Code.gs');
+    }
+    
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let sheet = spreadsheet.getSheetByName(sheetName);
+    
+    if (!sheet) {
+      sheet = spreadsheet.insertSheet(sheetName);
+      setupSheetHeaders(sheet, sheetName);
+      Logger.log('Created new sheet: ' + sheetName);
+    }
+    
+    return sheet;
+  } catch (error) {
+    Logger.log('Error accessing sheet ' + sheetName + ': ' + error.toString());
+    throw error;
   }
-  
-  return sheet;
 }
 
 function setupSheetHeaders(sheet, sheetName) {
