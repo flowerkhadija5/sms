@@ -32,7 +32,14 @@ function doGet(e) {
   const page = e.parameter.page || 'login';
   
   try {
-    if (page === 'dashboard') {
+    Logger.log('doGet called with page: ' + page);
+    
+    if (page === 'test') {
+      return HtmlService.createTemplateFromFile('minimal_test')
+        .evaluate()
+        .setTitle('Debug Test Page')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    } else if (page === 'dashboard') {
       return HtmlService.createTemplateFromFile('dashboard')
         .evaluate()
         .setTitle('Student & Teacher Management System - Dashboard')
@@ -45,14 +52,48 @@ function doGet(e) {
     }
   } catch (error) {
     Logger.log('doGet error: ' + error.toString());
-    // Return a simple error page
+    
+    // Return a detailed error page
     return HtmlService.createHtmlOutput(`
       <html>
-        <head><title>Error</title></head>
+        <head>
+          <title>System Error</title>
+          <style>
+            body { font-family: Arial; margin: 40px; background: #f5f5f5; }
+            .container { background: white; padding: 30px; border-radius: 8px; max-width: 600px; margin: 0 auto; }
+            .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            .info { background: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            button { background: #007bff; color: white; border: none; padding: 10px 20px; margin: 5px; cursor: pointer; }
+          </style>
+        </head>
         <body>
-          <h1>Error Loading Page</h1>
-          <p>Error: ${error.toString()}</p>
-          <p><a href="?page=login">Go to Login</a></p>
+          <div class="container">
+            <h1>🚨 System Error</h1>
+            
+            <div class="error">
+              <strong>Error Details:</strong><br>
+              ${error.toString()}
+            </div>
+            
+            <div class="info">
+              <strong>Possible Solutions:</strong><br>
+              1. Check if SPREADSHEET_ID is set correctly in Code.gs<br>
+              2. Make sure all HTML files are uploaded<br>
+              3. Try the test page to diagnose issues<br>
+            </div>
+            
+            <h3>Quick Actions:</h3>
+            <button onclick="window.location.href='?page=login'">Try Login Page</button>
+            <button onclick="window.location.href='?page=test'">Open Test Page</button>
+            <button onclick="window.location.reload()">Reload</button>
+            
+            <div style="margin-top: 30px; font-size: 12px; color: #666;">
+              <strong>Debug Info:</strong><br>
+              Requested page: ${page}<br>
+              Timestamp: ${new Date().toISOString()}<br>
+              SPREADSHEET_ID: ${SPREADSHEET_ID === 'YOUR_SPREADSHEET_ID' ? '❌ Not set' : '✅ Set'}
+            </div>
+          </div>
         </body>
       </html>
     `).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
