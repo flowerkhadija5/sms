@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Test - Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Dashboard Debug - Minimal Test</h1>
+        
+        <div class="status info">
+            <strong>Test Mode:</strong> Checking basic functionality without external dependencies
+        </div>
+
+        <!-- Basic HTML Test -->
+        <div class="test-result">
+            <h3>✅ HTML Structure Test</h3>
+            <p>If you can see this text, HTML is loading correctly.</p>
+        </div>
+
+        <!-- JavaScript Test -->
+        <div class="test-result">
+            <h3 id="jsTest">❌ JavaScript Test</h3>
+            <p id="jsResult">Testing...</p>
+        </div>
+
+        <!-- Session Storage Test -->
+        <div class="test-result">
+            <h3>🔍 Session Storage Test</h3>
+            <p>Current userInfo: <span id="userInfo">Checking...</span></p>
+            <button onclick="testSession()">Test Session</button>
+            <button onclick="clearSession()">Clear Session</button>
+        </div>
+
+        <!-- URL Parameters Test -->
+        <div class="test-result">
+            <h3>🌐 URL Parameters Test</h3>
+            <p>Current URL: <span id="currentUrl"></span></p>
+            <p>Page parameter: <span id="pageParam"></span></p>
+        </div>
+
+        <!-- External Libraries Test -->
+        <div class="test-result">
+            <h3>📚 External Libraries Test</h3>
+            <p>TailwindCSS: <span id="tailwindTest">❌</span></p>
+            <p>Lucide Icons: <span id="lucideTest">❌</span></p>
+            <button onclick="testLibraries()">Test Libraries</button>
+        </div>
+
+        <!-- Google Apps Script API Test -->
+        <div class="test-result">
+            <h3>🔗 Google Apps Script API Test</h3>
+            <p>google.script.run: <span id="gasTest">Checking...</span></p>
+            <button onclick="testGoogleScript()">Test GAS API</button>
+        </div>
+
+        <!-- Console Logs -->
+        <div class="test-result">
+            <h3>📋 Console Information</h3>
+            <p>Check browser console (F12) for detailed logs</p>
+            <button onclick="logDebugInfo()">Log Debug Info</button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="margin-top: 30px; text-align: center;">
+            <button onclick="window.location.href='?page=login'">Go to Login</button>
+            <button onclick="window.location.href='?page=dashboard'">Try Dashboard</button>
+            <button onclick="window.location.reload()">Reload Page</button>
+        </div>
+
+        <!-- Instructions -->
+        <div class="status warning" style="margin-top: 20px;">
+            <h4>🛠️ Debugging Steps:</h4>
+            <ol>
+                <li>Check all test results above</li>
+                <li>Open browser console (F12)</li>
+                <li>Look for any red error messages</li>
+                <li>Copy and share error messages</li>
+                <li>Try different browsers (Chrome, Firefox)</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- TailwindCSS CDN for testing -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons for testing -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <script>
+        console.log('🔧 Minimal Test Page Loading...');
+
+        // Test JavaScript execution
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOMContentLoaded fired');
+            
+            // Update JavaScript test
+            document.getElementById('jsTest').textContent = '✅ JavaScript Test';
+            document.getElementById('jsResult').textContent = 'JavaScript is working correctly!';
+            
+            // Update URL info
+            document.getElementById('currentUrl').textContent = window.location.href;
+            const urlParams = new URLSearchParams(window.location.search);
+            document.getElementById('pageParam').textContent = urlParams.get('page') || 'none';
+            
+            // Check session storage
+            updateSessionInfo();
+            
+            // Check Google Apps Script
+            checkGoogleScript();
+            
+            console.log('📊 Basic tests completed');
+        });
+
+        function updateSessionInfo() {
+            const userInfo = sessionStorage.getItem('userInfo');
+            const element = document.getElementById('userInfo');
+            
+            if (userInfo) {
+                try {
+                    const parsed = JSON.parse(userInfo);
+                    element.textContent = `Found: ${parsed.username} (${parsed.role})`;
+                    element.style.color = '#155724';
+                } catch (e) {
+                    element.textContent = 'Invalid JSON data';
+                    element.style.color = '#721c24';
+                }
+            } else {
+                element.textContent = 'No user data found';
+                element.style.color = '#856404';
+            }
+        }
+
+        function testSession() {
+            // Add test user data
+            const testUser = {
+                username: 'test_user',
+                role: 'Admin',
+                subject: 'All'
+            };
+            sessionStorage.setItem('userInfo', JSON.stringify(testUser));
+            updateSessionInfo();
+            console.log('✅ Test user data added to session');
+        }
+
+        function clearSession() {
+            sessionStorage.clear();
+            updateSessionInfo();
+            console.log('🗑️ Session storage cleared');
+        }
+
+        function testLibraries() {
+            // Test TailwindCSS
+            const tailwindElement = document.getElementById('tailwindTest');
+            if (typeof tailwindcss !== 'undefined' || document.querySelector('script[src*="tailwindcss"]')) {
+                tailwindElement.textContent = '✅ Loaded';
+                tailwindElement.style.color = '#155724';
+            } else {
+                tailwindElement.textContent = '❌ Not loaded';
+                tailwindElement.style.color = '#721c24';
+            }
+
+            // Test Lucide
+            const lucideElement = document.getElementById('lucideTest');
+            if (typeof lucide !== 'undefined') {
+                lucideElement.textContent = '✅ Loaded';
+                lucideElement.style.color = '#155724';
+                console.log('✅ Lucide version:', lucide);
+            } else {
+                lucideElement.textContent = '❌ Not loaded';
+                lucideElement.style.color = '#721c24';
+            }
+        }
+
+        function checkGoogleScript() {
+            const element = document.getElementById('gasTest');
+            
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                element.textContent = '✅ Available';
+                element.style.color = '#155724';
+                console.log('✅ Google Apps Script API available');
+            } else {
+                element.textContent = '❌ Not available';
+                element.style.color = '#721c24';
+                console.log('❌ Google Apps Script API not available');
+            }
+        }
+
+        function testGoogleScript() {
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                console.log('🔗 Testing Google Apps Script connection...');
+                
+                // Try to call a simple function
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        console.log('✅ GAS Test Success:', result);
+                        alert('✅ Google Apps Script connection successful!\nResult: ' + result);
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('❌ GAS Test Error:', error);
+                        alert('❌ Google Apps Script error:\n' + error.message);
+                    })
+                    .testFunction(); // This should exist in Code.gs
+            } else {
+                alert('❌ Google Apps Script API not available');
+            }
+        }
+
+        function logDebugInfo() {
+            console.log('=== DEBUG INFO ===');
+            console.log('URL:', window.location.href);
+            console.log('User Agent:', navigator.userAgent);
+            console.log('Session Storage:', sessionStorage.getItem('userInfo'));
+            console.log('Google Script Available:', typeof google !== 'undefined' && google.script);
+            console.log('TailwindCSS:', typeof tailwindcss !== 'undefined');
+            console.log('Lucide:', typeof lucide !== 'undefined');
+            console.log('Document Ready State:', document.readyState);
+            console.log('=== END DEBUG ===');
+            
+            alert('Debug info logged to console. Open F12 to view.');
+        }
+
+        // Auto-run some tests
+        window.addEventListener('load', function() {
+            console.log('🏁 Window load event fired');
+            testLibraries();
+        });
+
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('💥 JavaScript Error:', e.error);
+            console.error('File:', e.filename, 'Line:', e.lineno);
+        });
+    </script>
+</body>
+</html>

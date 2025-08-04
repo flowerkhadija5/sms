@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Student & Teacher Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+        .content-transition {
+            transition: margin-left 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Mobile Menu Overlay -->
+    <div id="mobileOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition transform -translate-x-full lg:translate-x-0">
+        <!-- Sidebar Header -->
+        <div class="flex items-center justify-between h-16 px-6 bg-indigo-600">
+            <div class="flex items-center">
+                <i data-lucide="graduation-cap" class="w-8 h-8 text-white mr-3"></i>
+                <span class="text-white font-semibold text-lg">SMS</span>
+            </div>
+            <button id="closeSidebar" class="lg:hidden text-white">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- User Info -->
+        <div class="p-6 bg-gray-50">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
+                    <i data-lucide="user" class="w-5 h-5 text-white"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900" id="userName">Loading...</p>
+                    <p class="text-xs text-gray-500" id="userRole">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="mt-6">
+            <div class="px-6 pb-4">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Menu</h3>
+            </div>
+            <ul class="space-y-1 px-3">
+                <li>
+                    <a href="#" onclick="showView('dashboard')" class="nav-item flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                        <i data-lucide="home" class="w-5 h-5 mr-3"></i>Dashboard
+                    </a>
+                </li>
+                <li id="registerStudentNav">
+                    <a href="#" onclick="showView('register-student')" class="nav-item flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                        <i data-lucide="user-plus" class="w-5 h-5 mr-3"></i>Register Student
+                    </a>
+                </li>
+                <li id="registerTeacherNav">
+                    <a href="#" onclick="showView('register-teacher')" class="nav-item flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                        <i data-lucide="user-check" class="w-5 h-5 mr-3"></i>Register Teacher
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('student-list')" class="nav-item flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                        <i data-lucide="users" class="w-5 h-5 mr-3"></i>Student List
+                    </a>
+                </li>
+                <li id="teacherListNav">
+                    <a href="#" onclick="showView('teacher-list')" class="nav-item flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                        <i data-lucide="user-graduate" class="w-5 h-5 mr-3"></i>Teacher List
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Logout Button -->
+        <div class="absolute bottom-0 w-full p-6">
+            <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100">
+                <i data-lucide="log-out" class="w-4 h-4 mr-2"></i>Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="content-transition lg:ml-64">
+        <!-- Top Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center">
+                    <button id="openSidebar" class="lg:hidden text-gray-500 hover:text-gray-700">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <h1 class="ml-4 lg:ml-0 text-xl font-semibold text-gray-900" id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500" id="currentDateTime"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="p-4 sm:p-6 lg:p-8">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i data-lucide="users" class="w-8 h-8 text-blue-600"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Students</dt>
+                                        <dd class="text-lg font-medium text-gray-900" id="totalStudents">Loading...</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-5 py-3">
+                            <div class="text-sm">
+                                <a href="#" onclick="showView('student-list')" class="font-medium text-blue-600 hover:text-blue-500">View all students</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i data-lucide="user-check" class="w-8 h-8 text-green-600"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Teachers</dt>
+                                        <dd class="text-lg font-medium text-gray-900" id="totalTeachers">Loading...</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-5 py-3">
+                            <div class="text-sm">
+                                <a href="#" onclick="showView('teacher-list')" class="font-medium text-green-600 hover:text-green-500">View all teachers</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i data-lucide="book-open" class="w-8 h-8 text-purple-600"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Subjects</dt>
+                                        <dd class="text-lg font-medium text-gray-900" id="totalSubjects">Loading...</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-5 py-3">
+                            <div class="text-sm">
+                                <span class="font-medium text-purple-600">Active subjects</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <button onclick="showView('register-student')" class="quick-action-btn bg-blue-50 hover:bg-blue-100 text-blue-700 p-4 rounded-lg text-center transition duration-200">
+                            <i data-lucide="user-plus" class="w-8 h-8 mx-auto mb-2"></i>
+                            <span class="block text-sm font-medium">Add Student</span>
+                        </button>
+                        <button onclick="showView('register-teacher')" class="quick-action-btn bg-green-50 hover:bg-green-100 text-green-700 p-4 rounded-lg text-center transition duration-200">
+                            <i data-lucide="user-check" class="w-8 h-8 mx-auto mb-2"></i>
+                            <span class="block text-sm font-medium">Add Teacher</span>
+                        </button>
+                        <button onclick="showView('student-list')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 p-4 rounded-lg text-center transition duration-200">
+                            <i data-lucide="users" class="w-8 h-8 mx-auto mb-2"></i>
+                            <span class="block text-sm font-medium">Manage Students</span>
+                        </button>
+                        <button onclick="showView('teacher-list')" class="quick-action-btn bg-orange-50 hover:bg-orange-100 text-orange-700 p-4 rounded-lg text-center transition duration-200">
+                            <i data-lucide="user-graduate" class="w-8 h-8 mx-auto mb-2"></i>
+                            <span class="block text-sm font-medium">Manage Teachers</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Registration View -->
+            <div id="registerStudentView" class="view hidden">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-6">Register New Student</h2>
+                    <form id="studentForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="studentName" class="block text-sm font-medium text-gray-700">Name *</label>
+                                <input type="text" id="studentName" name="name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="studentDOB" class="block text-sm font-medium text-gray-700">Date of Birth *</label>
+                                <input type="date" id="studentDOB" name="dob" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="studentGender" class="block text-sm font-medium text-gray-700">Gender *</label>
+                                <select id="studentGender" name="gender" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="studentFatherName" class="block text-sm font-medium text-gray-700">Father's Name *</label>
+                                <input type="text" id="studentFatherName" name="fatherName" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="studentMotherName" class="block text-sm font-medium text-gray-700">Mother's Name *</label>
+                                <input type="text" id="studentMotherName" name="motherName" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="studentContact" class="block text-sm font-medium text-gray-700">Contact *</label>
+                                <input type="tel" id="studentContact" name="contact" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="studentEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                                <input type="email" id="studentEmail" name="email" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="studentClass" class="block text-sm font-medium text-gray-700">Class *</label>
+                                <input type="text" id="studentClass" name="class" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="studentWhatsApp" class="block text-sm font-medium text-gray-700">WhatsApp</label>
+                                <input type="tel" id="studentWhatsApp" name="whatsapp" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="studentSubject" class="block text-sm font-medium text-gray-700">Subject *</label>
+                                <input type="text" id="studentSubject" name="subject" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="studentAdmissionDate" class="block text-sm font-medium text-gray-700">Admission Date *</label>
+                                <input type="date" id="studentAdmissionDate" name="admissionDate" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="studentAddress" class="block text-sm font-medium text-gray-700">Address *</label>
+                            <textarea id="studentAddress" name="address" rows="3" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" onclick="showView('dashboard')" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">Register Student</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Teacher Registration View -->
+            <div id="registerTeacherView" class="view hidden">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-6">Register New Teacher</h2>
+                    <form id="teacherForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="teacherName" class="block text-sm font-medium text-gray-700">Name *</label>
+                                <input type="text" id="teacherName" name="name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="teacherContact" class="block text-sm font-medium text-gray-700">Contact *</label>
+                                <input type="tel" id="teacherContact" name="contact" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="teacherEmail" class="block text-sm font-medium text-gray-700">Email *</label>
+                                <input type="email" id="teacherEmail" name="email" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="teacherSubject" class="block text-sm font-medium text-gray-700">Subject *</label>
+                                <input type="text" id="teacherSubject" name="subject" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label for="teacherJoinDate" class="block text-sm font-medium text-gray-700">Date of Joining *</label>
+                                <input type="date" id="teacherJoinDate" name="joinDate" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="teacherAddress" class="block text-sm font-medium text-gray-700">Address *</label>
+                            <textarea id="teacherAddress" name="address" rows="3" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" onclick="showView('dashboard')" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">Register Teacher</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Student List View -->
+            <div id="studentListView" class="view hidden">
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-medium text-gray-900">Student List</h2>
+                            <button onclick="loadStudentsList()" class="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-1"></i>Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsTableBody" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading students...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher List View -->
+            <div id="teacherListView" class="view hidden">
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-medium text-gray-900">Teacher List</h2>
+                            <button onclick="loadTeachersList()" class="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-1"></i>Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teachersTableBody" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading teachers...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success/Error Alert -->
+    <div id="alertContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let currentView = 'dashboard';
+
+        // Initialize the application
+        function initializeDashboard() {
+            console.log('Dashboard initializing...');
+            
+            try {
+                // Initialize Lucide icons
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                    console.log('Lucide icons initialized');
+                }
+                
+                // Check authentication first
+                if (!checkAuthentication()) {
+                    console.log('Authentication failed, stopping initialization');
+                    return;
+                }
+                
+                console.log('Authentication successful, setting up dashboard...');
+                
+                // Set up event listeners
+                setupEventListeners();
+                
+                // Update date/time
+                updateDateTime();
+                setInterval(updateDateTime, 1000);
+                
+                // Set default dates
+                const today = new Date().toISOString().split('T')[0];
+                const admissionDateField = document.getElementById('studentAdmissionDate');
+                const joinDateField = document.getElementById('teacherJoinDate');
+                if (admissionDateField) admissionDateField.value = today;
+                if (joinDateField) joinDateField.value = today;
+                
+                // Load initial data
+                setTimeout(loadDashboardData, 500);
+                
+                console.log('Dashboard setup complete');
+                
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+                document.body.innerHTML = `
+                    <div style="padding: 20px; text-align: center; font-family: Arial;">
+                        <h2>Dashboard Loading Error</h2>
+                        <p>Error: ${error.message}</p>
+                        <button onclick="window.location.reload()">Reload Page</button>
+                        <br><br>
+                        <a href="?page=login">Back to Login</a>
+                    </div>
+                `;
+            }
+        }
+
+        // Wait for DOM and external scripts to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Small delay to ensure all scripts are loaded
+            setTimeout(initializeDashboard, 100);
+        });
+
+        // Fallback initialization if DOMContentLoaded already fired
+        if (document.readyState === 'loading') {
+            // DOM is still loading
+        } else {
+            // DOM is already loaded
+            setTimeout(initializeDashboard, 100);
+        }
+
+        function checkAuthentication() {
+            const userInfo = sessionStorage.getItem('userInfo');
+            if (!userInfo) {
+                console.log('No user info found, redirecting to login');
+                window.location.href = `${window.location.origin}${window.location.pathname}?page=login`;
+                return false;
+            }
+            
+            try {
+                currentUser = JSON.parse(userInfo);
+                console.log('User authenticated:', currentUser);
+                document.getElementById('userName').textContent = currentUser.username || 'User';
+                document.getElementById('userRole').textContent = currentUser.role || 'Unknown';
+                return true;
+            } catch (error) {
+                console.error('Error parsing user info:', error);
+                sessionStorage.removeItem('userInfo');
+                window.location.href = `${window.location.origin}${window.location.pathname}?page=login`;
+                return false;
+            }
+            
+                // Hide certain navigation items for teachers
+                if (currentUser && currentUser.role === 'Teacher') {
+                    console.log('Hiding teacher-restricted elements...');
+                    const registerStudentNav = document.getElementById('registerStudentNav');
+                    const registerTeacherNav = document.getElementById('registerTeacherNav');
+                    const teacherListNav = document.getElementById('teacherListNav');
+                    
+                    if (registerStudentNav) registerStudentNav.style.display = 'none';
+                    if (registerTeacherNav) registerTeacherNav.style.display = 'none';
+                    if (teacherListNav) teacherListNav.style.display = 'none';
+                    
+                    // Hide quick action buttons for teachers
+                    const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+                    quickActionBtns.forEach(btn => btn.style.display = 'none');
+                }
+        }
+
+        function setupEventListeners() {
+            // Mobile menu toggles
+            document.getElementById('openSidebar').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.remove('-translate-x-full');
+                document.getElementById('mobileOverlay').classList.remove('hidden');
+            });
+
+            document.getElementById('closeSidebar').addEventListener('click', closeMobileMenu);
+            document.getElementById('mobileOverlay').addEventListener('click', closeMobileMenu);
+
+            // Form submissions
+            document.getElementById('studentForm').addEventListener('submit', handleStudentRegistration);
+            document.getElementById('teacherForm').addEventListener('submit', handleTeacherRegistration);
+        }
+
+        function closeMobileMenu() {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('mobileOverlay').classList.add('hidden');
+        }
+
+        function showView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
+            
+            // Update page title
+            const titles = {
+                'dashboard': 'Dashboard',
+                'register-student': 'Register Student',
+                'register-teacher': 'Register Teacher',
+                'student-list': 'Student List',
+                'teacher-list': 'Teacher List'
+            };
+            document.getElementById('pageTitle').textContent = titles[viewName] || 'Dashboard';
+            
+            // Show selected view
+            const selectedView = document.getElementById(viewName.replace('-', '') + 'View');
+            if (selectedView) {
+                selectedView.classList.remove('hidden');
+            }
+            
+            // Update navigation active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('bg-indigo-100', 'text-indigo-700');
+                item.classList.add('text-gray-600');
+            });
+            
+            // Load data for specific views
+            if (viewName === 'student-list') {
+                loadStudentsList();
+            } else if (viewName === 'teacher-list') {
+                loadTeachersList();
+            }
+            
+            // Close mobile menu
+            closeMobileMenu();
+            
+            currentView = viewName;
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            };
+            document.getElementById('currentDateTime').textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        function loadDashboardData() {
+            console.log('Loading dashboard data...');
+            
+            // Check if google.script.run is available
+            if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                console.error('Google Apps Script API not available');
+                showAlert('Google Apps Script connection failed. Please check your setup.', 'error');
+                
+                // Set default values
+                document.getElementById('totalStudents').textContent = '0';
+                document.getElementById('totalTeachers').textContent = '0';
+                document.getElementById('totalSubjects').textContent = '0';
+                return;
+            }
+            
+            google.script.run
+                .withSuccessHandler(function(data) {
+                    console.log('Dashboard data received:', data);
+                    if (data && typeof data === 'object') {
+                        document.getElementById('totalStudents').textContent = data.totalStudents || '0';
+                        document.getElementById('totalTeachers').textContent = data.totalTeachers || '0';
+                        document.getElementById('totalSubjects').textContent = data.totalSubjects || '0';
+                    } else {
+                        console.error('Invalid data received:', data);
+                        showAlert('Invalid data received from server', 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Dashboard data error:', error);
+                    showAlert('Failed to load dashboard data: ' + error.message, 'error');
+                    
+                    // Set error values
+                    document.getElementById('totalStudents').textContent = 'Error';
+                    document.getElementById('totalTeachers').textContent = 'Error';
+                    document.getElementById('totalSubjects').textContent = 'Error';
+                })
+                .getDashboardSummary();
+        }
+
+        function handleStudentRegistration(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const studentData = Object.fromEntries(formData.entries());
+            
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Registering...';
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showAlert(result.message, 'success');
+                        e.target.reset();
+                        loadDashboardData(); // Refresh dashboard data
+                    } else {
+                        showAlert(result.message, 'error');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Student registration error:', error);
+                    showAlert('Failed to register student', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                })
+                .registerStudent(studentData);
+        }
+
+        function handleTeacherRegistration(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const teacherData = Object.fromEntries(formData.entries());
+            
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Registering...';
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showAlert(result.message, 'success');
+                        e.target.reset();
+                        loadDashboardData(); // Refresh dashboard data
+                    } else {
+                        showAlert(result.message, 'error');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Teacher registration error:', error);
+                    showAlert('Failed to register teacher', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                })
+                .registerTeacher(teacherData);
+        }
+
+        function loadStudentsList() {
+            const tbody = document.getElementById('studentsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading students...</td></tr>';
+            
+            google.script.run
+                .withSuccessHandler(function(students) {
+                    if (students.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No students found</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = students.map(student => `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${student.studentId}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${student.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${student.class}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${student.subject}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${student.contact}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                <button onclick="editStudent('${student.studentId}')" class="text-indigo-600 hover:text-indigo-900">Edit</button>
+                                <button onclick="deleteStudentConfirm('${student.studentId}', '${student.name}')" class="text-red-600 hover:text-red-900">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Load students error:', error);
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Failed to load students</td></tr>';
+                })
+                .getStudentsList(currentUser.role, currentUser.subject);
+        }
+
+        function loadTeachersList() {
+            const tbody = document.getElementById('teachersTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading teachers...</td></tr>';
+            
+            google.script.run
+                .withSuccessHandler(function(teachers) {
+                    if (teachers.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No teachers found</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = teachers.map(teacher => `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${teacher.teacherId}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${teacher.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${teacher.subject}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${teacher.contact}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${teacher.email}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                <button onclick="editTeacher('${teacher.teacherId}')" class="text-indigo-600 hover:text-indigo-900">Edit</button>
+                                <button onclick="deleteTeacherConfirm('${teacher.teacherId}', '${teacher.name}')" class="text-red-600 hover:text-red-900">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Load teachers error:', error);
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Failed to load teachers</td></tr>';
+                })
+                .getTeachersList();
+        }
+
+        function editStudent(studentId) {
+            showAlert('Edit functionality will be implemented in future updates', 'info');
+        }
+
+        function editTeacher(teacherId) {
+            showAlert('Edit functionality will be implemented in future updates', 'info');
+        }
+
+        function deleteStudentConfirm(studentId, studentName) {
+            if (confirm(`Are you sure you want to delete student "${studentName}"?`)) {
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        if (result.success) {
+                            showAlert(result.message, 'success');
+                            loadStudentsList();
+                            loadDashboardData();
+                        } else {
+                            showAlert(result.message, 'error');
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Delete student error:', error);
+                        showAlert('Failed to delete student', 'error');
+                    })
+                    .deleteStudent(studentId);
+            }
+        }
+
+        function deleteTeacherConfirm(teacherId, teacherName) {
+            if (confirm(`Are you sure you want to delete teacher "${teacherName}"?`)) {
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        if (result.success) {
+                            showAlert(result.message, 'success');
+                            loadTeachersList();
+                            loadDashboardData();
+                        } else {
+                            showAlert(result.message, 'error');
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Delete teacher error:', error);
+                        showAlert('Failed to delete teacher', 'error');
+                    })
+                    .deleteTeacher(teacherId);
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertId = 'alert-' + Date.now();
+            
+            const alertTypes = {
+                success: 'bg-green-50 border-green-200 text-green-800',
+                error: 'bg-red-50 border-red-200 text-red-800',
+                info: 'bg-blue-50 border-blue-200 text-blue-800',
+                warning: 'bg-yellow-50 border-yellow-200 text-yellow-800'
+            };
+            
+            const icons = {
+                success: 'check-circle',
+                error: 'x-circle',
+                info: 'info',
+                warning: 'alert-triangle'
+            };
+            
+            const alertHtml = `
+                <div id="${alertId}" class="border rounded-md p-4 ${alertTypes[type]} max-w-sm shadow-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i data-lucide="${icons[type]}" class="w-5 h-5"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium">${message}</p>
+                        </div>
+                        <div class="ml-auto pl-3">
+                            <button onclick="removeAlert('${alertId}')" class="text-current opacity-50 hover:opacity-75">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            alertContainer.insertAdjacentHTML('afterbegin', alertHtml);
+            lucide.createIcons();
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => removeAlert(alertId), 5000);
+        }
+
+        function removeAlert(alertId) {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.remove();
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('userInfo');
+                window.location.href = `${window.location.origin}${window.location.pathname}?page=login`;
+            }
+        }
+
+
+    </script>
+</body>
+</html>
