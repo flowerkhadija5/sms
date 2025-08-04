@@ -158,9 +158,14 @@
                     if (result.success) {
                         // Store user info in session storage
                         sessionStorage.setItem('userInfo', JSON.stringify(result.user));
+                        console.log('User info stored:', result.user);
                         
-                        // Redirect to dashboard
-                        window.location.href = `${window.location.origin}${window.location.pathname}?page=dashboard`;
+                        // Small delay to ensure storage is complete
+                        setTimeout(() => {
+                            // Redirect to dashboard
+                            const baseUrl = window.location.href.split('?')[0];
+                            window.location.href = `${baseUrl}?page=dashboard`;
+                        }, 100);
                     } else {
                         showError(result.message || 'Login failed');
                         resetLoginButton();

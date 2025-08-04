@@ -5,6 +5,19 @@
 
 // Configuration
 const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'; // Replace with your Google Sheets ID
+
+// Debug function to check if SPREADSHEET_ID is set
+function checkSpreadsheetId() {
+  if (SPREADSHEET_ID === 'YOUR_SPREADSHEET_ID') {
+    return 'ERROR: Please replace YOUR_SPREADSHEET_ID with your actual Google Sheets ID';
+  }
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    return 'SUCCESS: Spreadsheet connected - ' + spreadsheet.getName();
+  } catch (error) {
+    return 'ERROR: Cannot access spreadsheet - ' + error.toString();
+  }
+}
 const SHEETS = {
   LOGIN: 'login',
   STUDENTS: 'Students',
@@ -18,20 +31,32 @@ const SHEETS = {
 function doGet(e) {
   const page = e.parameter.page || 'login';
   
-  if (page === 'login') {
-    return HtmlService.createTemplateFromFile('login')
-      .evaluate()
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  } else if (page === 'dashboard') {
-    return HtmlService.createTemplateFromFile('dashboard')
-      .evaluate()
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  try {
+    if (page === 'dashboard') {
+      return HtmlService.createTemplateFromFile('dashboard')
+        .evaluate()
+        .setTitle('Student & Teacher Management System - Dashboard')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    } else {
+      return HtmlService.createTemplateFromFile('login')
+        .evaluate()
+        .setTitle('Student & Teacher Management System - Login')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    }
+  } catch (error) {
+    Logger.log('doGet error: ' + error.toString());
+    // Return a simple error page
+    return HtmlService.createHtmlOutput(`
+      <html>
+        <head><title>Error</title></head>
+        <body>
+          <h1>Error Loading Page</h1>
+          <p>Error: ${error.toString()}</p>
+          <p><a href="?page=login">Go to Login</a></p>
+        </body>
+      </html>
+    `).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
-  
-  // Default to login
-  return HtmlService.createTemplateFromFile('login')
-    .evaluate()
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 /**
@@ -375,11 +400,37 @@ function logAction(username, role, actionType, details) {
  * Initialize Sheets (Run this once to set up your sheets)
  */
 function initializeSheets() {
-  // Create sample login data
-  const loginSheet = getSheet(SHEETS.LOGIN);
-  loginSheet.appendRow(['admin', 'admin123', 'Admin', 'All']);
-  loginSheet.appendRow(['teacher1', 'teacher123', 'Teacher', 'Mathematics']);
-  loginSheet.appendRow(['teacher2', 'teacher123', 'Teacher', 'Science']);
-  
-  Logger.log('Sheets initialized successfully!');
+  try {
+    // Create sample login data
+    const loginSheet = getSheet(SHEETS.LOGIN);
+    
+    // Check if data already exists
+    const existingData = loginSheet.getDataRange().getValues();
+    if (existingData.length <= 1) {
+      loginSheet.appendRow(['admin', 'admin123', 'Admin', 'All']);
+      loginSheet.appendRow(['teacher1', 'teacher123', 'Teacher', 'Mathematics']);
+      loginSheet.appendRow(['teacher2', 'teacher123', 'Teacher', 'Science']);
+    }
+    
+    Logger.log('Sheets initialized successfully!');
+    return 'Sheets initialized successfully!';
+  } catch (error) {
+    Logger.log('Error initializing sheets: ' + error.toString());
+    return 'Error: ' + error.toString();
+  }
+}
+
+/**
+ * Test function to check if everything is working
+ */
+function testFunction() {
+  try {
+    Logger.log('Test function started');
+    const summary = getDashboardSummary();
+    Logger.log('Dashboard summary: ' + JSON.stringify(summary));
+    return 'Test successful: ' + JSON.stringify(summary);
+  } catch (error) {
+    Logger.log('Test error: ' + error.toString());
+    return 'Test error: ' + error.toString();
+  }
 }

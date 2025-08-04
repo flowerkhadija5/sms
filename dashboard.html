@@ -383,11 +383,17 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard loading...');
+            
             // Initialize Lucide icons
             lucide.createIcons();
             
-            // Check authentication
-            checkAuthentication();
+            // Check authentication first
+            if (!checkAuthentication()) {
+                return; // Stop if authentication fails
+            }
+            
+            console.log('Authentication successful, setting up dashboard...');
             
             // Set up event listeners
             setupEventListeners();
@@ -398,29 +404,53 @@
             
             // Load initial data
             loadDashboardData();
+            
+            // Set default dates
+            const today = new Date().toISOString().split('T')[0];
+            const admissionDateField = document.getElementById('studentAdmissionDate');
+            const joinDateField = document.getElementById('teacherJoinDate');
+            if (admissionDateField) admissionDateField.value = today;
+            if (joinDateField) joinDateField.value = today;
+            
+            console.log('Dashboard setup complete');
         });
 
         function checkAuthentication() {
             const userInfo = sessionStorage.getItem('userInfo');
             if (!userInfo) {
+                console.log('No user info found, redirecting to login');
                 window.location.href = `${window.location.origin}${window.location.pathname}?page=login`;
-                return;
+                return false;
             }
             
-            currentUser = JSON.parse(userInfo);
-            document.getElementById('userName').textContent = currentUser.username;
-            document.getElementById('userRole').textContent = currentUser.role;
-            
-            // Hide certain navigation items for teachers
-            if (currentUser.role === 'Teacher') {
-                document.getElementById('registerStudentNav').style.display = 'none';
-                document.getElementById('registerTeacherNav').style.display = 'none';
-                document.getElementById('teacherListNav').style.display = 'none';
-                
-                // Hide quick action buttons for teachers
-                const quickActionBtns = document.querySelectorAll('.quick-action-btn');
-                quickActionBtns.forEach(btn => btn.style.display = 'none');
+            try {
+                currentUser = JSON.parse(userInfo);
+                console.log('User authenticated:', currentUser);
+                document.getElementById('userName').textContent = currentUser.username || 'User';
+                document.getElementById('userRole').textContent = currentUser.role || 'Unknown';
+                return true;
+            } catch (error) {
+                console.error('Error parsing user info:', error);
+                sessionStorage.removeItem('userInfo');
+                window.location.href = `${window.location.origin}${window.location.pathname}?page=login`;
+                return false;
             }
+            
+                // Hide certain navigation items for teachers
+                if (currentUser && currentUser.role === 'Teacher') {
+                    console.log('Hiding teacher-restricted elements...');
+                    const registerStudentNav = document.getElementById('registerStudentNav');
+                    const registerTeacherNav = document.getElementById('registerTeacherNav');
+                    const teacherListNav = document.getElementById('teacherListNav');
+                    
+                    if (registerStudentNav) registerStudentNav.style.display = 'none';
+                    if (registerTeacherNav) registerTeacherNav.style.display = 'none';
+                    if (teacherListNav) teacherListNav.style.display = 'none';
+                    
+                    // Hide quick action buttons for teachers
+                    const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+                    quickActionBtns.forEach(btn => btn.style.display = 'none');
+                }
         }
 
         function setupEventListeners() {
@@ -743,12 +773,7 @@
             }
         }
 
-        // Set default dates
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('studentAdmissionDate').value = today;
-            document.getElementById('teacherJoinDate').value = today;
-        });
+
     </script>
 </body>
 </html>
